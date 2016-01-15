@@ -33,11 +33,9 @@ class HTTPRequest(object):
         self.body = body
 
 class HTTPClient(object):
-    #def get_host_port(self,url):
-
     def connect(self, host, port=80):
         # use sockets!
-        request = "GET / HTTP/1.1\n\n"
+        request = "GET / HTTP/1.0\n\n"
 
         # init socket obj & connect to host
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -46,14 +44,20 @@ class HTTPClient(object):
 
         return sock
 
+    # Returns status code
     def get_code(self, data):
-        return None
+        patern = r"[0-9]{3}"
+        return re.search(patern, data).group(0)
 
+    # Returns headers as an arry of strings with /r and /n removed
     def get_headers(self,data):
-        return None
+        patern = r"(.+:\s.+)"
+        return [i.rstrip("\r").rstrip("\n") for i in re.findall(patern, data)]
 
+    # Returns body as a string with newlines
     def get_body(self, data):
-        return None
+        patern = r"(\r\n){2}|(\n){2}"
+        return str(re.split(patern, data)[-1])
 
     # read everything from the socket
     def recvall(self, sock):
@@ -63,29 +67,13 @@ class HTTPClient(object):
             part = sock.recv(2048)
             if (part):
                 buffer.extend(part)
-                print part
             else:
                 done = True
         return str(buffer)
 
-    def read_data(self, sock):
-        done = False
-        data = ""
-
-        while not done:
-            part = sock.recv(10)
-            if (part):
-                print part
-                data += str(part)
-            else:
-                done = True
-        return data
-
     def GET(self, url, args=None):
         sock = self.connect(url)
-        data = self.read_data(sock)
-
-        print data
+        data = self.recvall(sock)
 
         code = self.get_code(data)
         body = self.get_body(data)
@@ -110,6 +98,6 @@ if __name__ == "__main__":
         help()
         sys.exit(1)
     elif (len(sys.argv) == 3):
-        print client.command( sys.argv[2], sys.argv[1] )
+        print client.command(sys.argv[2], sys.argv[1])
     else:
-        print client.command( sys.argv[1] )
+        print client.command(sys.argv[1])
