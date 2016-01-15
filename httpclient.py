@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # coding: utf-8
 # Copyright 2013 Abram Hindle
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,9 +35,16 @@ class HTTPRequest(object):
 class HTTPClient(object):
     #def get_host_port(self,url):
 
-    def connect(self, host, port):
+    def connect(self, host, port=80):
         # use sockets!
-        return None
+        request = "GET / HTTP/1.1\n\n"
+
+        # init socket obj & connect to host
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((host,port))
+        sock.sendall(request)
+
+        return sock
 
     def get_code(self, data):
         return None
@@ -53,21 +60,41 @@ class HTTPClient(object):
         buffer = bytearray()
         done = False
         while not done:
-            part = sock.recv(1024)
+            part = sock.recv(2048)
             if (part):
                 buffer.extend(part)
+                print part
             else:
-                done = not part
+                done = True
         return str(buffer)
 
+    def read_data(self, sock):
+        done = False
+        data = ""
+
+        while not done:
+            part = sock.recv(10)
+            if (part):
+                print part
+                data += str(part)
+            else:
+                done = True
+        return data
+
     def GET(self, url, args=None):
-        code = 500
-        body = ""
+        sock = self.connect(url)
+        data = self.read_data(sock)
+
+        print data
+
+        code = self.get_code(data)
+        body = self.get_body(data)
+
         return HTTPRequest(code, body)
 
     def POST(self, url, args=None):
         code = 500
-        body = ""
+        body = "POST / HTTP/1.0\n\n"
         return HTTPRequest(code, body)
 
     def command(self, url, command="GET", args=None):
@@ -75,7 +102,7 @@ class HTTPClient(object):
             return self.POST( url, args )
         else:
             return self.GET( url, args )
-    
+
 if __name__ == "__main__":
     client = HTTPClient()
     command = "GET"
@@ -83,6 +110,6 @@ if __name__ == "__main__":
         help()
         sys.exit(1)
     elif (len(sys.argv) == 3):
-        print client.command( sys.argv[1], sys.argv[2] )
+        print client.command( sys.argv[2], sys.argv[1] )
     else:
-        print client.command( command, sys.argv[1] )    
+        print client.command( sys.argv[1] )
