@@ -35,26 +35,27 @@ class HTTPRequest(object):
 class HTTPClient(object):
     def connect(self, host, port=80):
         # use sockets!
-        request = "GET / HTTP/1.0\n\n"
+        #TODO need  "GET /pub/WWW/ HTTP/1.1
+        #            Host: www.w3.org"
 
         # init socket obj & connect to host
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((host,port))
-        sock.sendall(request)
+        sock.sendall(self.request)
 
         return sock
 
-    # Returns status code
+    # Returns response status code as int
     def get_code(self, data):
         patern = r"[0-9]{3}"
-        return re.search(patern, data).group(0)
+        return int(re.search(patern, data).group(0))
 
-    # Returns headers as an arry of strings with /r and /n removed
+    # Returns response headers as an arry of strings with /r and /n removed
     def get_headers(self,data):
         patern = r"(.+:\s.+)"
         return [i.rstrip("\r").rstrip("\n") for i in re.findall(patern, data)]
 
-    # Returns body as a string with newlines
+    # Returns response body as a string with newlines
     def get_body(self, data):
         patern = r"(\r\n){2}|(\n){2}"
         return str(re.split(patern, data)[-1])
@@ -72,7 +73,12 @@ class HTTPClient(object):
         return str(buffer)
 
     def GET(self, url, args=None):
-        sock = self.connect(url)
+        if url.find("/") == -1:
+            url += "/"
+
+        self.request =  "GET " + url[url.index("/"):] + " HTTP/1.0\n" + \
+                        "Host: " + url[:url.index("/")] + "\n\n"
+        sock = self.connect(url[:url.index("/")])
         data = self.recvall(sock)
 
         code = self.get_code(data)
@@ -81,15 +87,15 @@ class HTTPClient(object):
         return HTTPRequest(code, body)
 
     def POST(self, url, args=None):
-        code = 500
-        body = "POST / HTTP/1.0\n\n"
+        code = self.get_code(data)
+        body = self.get_body(data)
         return HTTPRequest(code, body)
 
     def command(self, url, command="GET", args=None):
         if (command == "POST"):
-            return self.POST( url, args )
+            return self.POST(url, args)
         else:
-            return self.GET( url, args )
+            return self.GET(url, args)
 
 if __name__ == "__main__":
     client = HTTPClient()
@@ -98,6 +104,8 @@ if __name__ == "__main__":
         help()
         sys.exit(1)
     elif (len(sys.argv) == 3):
-        print client.command(sys.argv[2], sys.argv[1])
+        r = client.command(sys.argv[2], sys.argv[1])
+        print r.code
     else:
-        print client.command(sys.argv[1])
+        r = client.command(sys.argv[1])
+        print r.code
