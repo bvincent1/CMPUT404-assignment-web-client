@@ -70,6 +70,10 @@ class HTTPClient(object):
         return str(buffer)
 
     def GET(self, url, args=None):
+        # cut http:// cause Tim Berners-Lee
+        if url.find("http://") != -1:
+            url = url[url.index("//")+2:]
+
         if url.find("/") == -1:
             url += "/"
 
@@ -87,6 +91,10 @@ class HTTPClient(object):
         return HTTPRequest(code, body)
 
     def POST(self, url, args=None):
+        # cut http:// cause Tim Berners-Lee
+        if url.find("http://") != -1:
+            url = url[url.index("//")+2:]
+
         if url.find("/") == -1:
             url += "/"
 
