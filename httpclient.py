@@ -35,9 +35,6 @@ class HTTPRequest(object):
 class HTTPClient(object):
     def connect(self, host, port=80):
         # use sockets!
-        #TODO need  "GET /pub/WWW/ HTTP/1.1
-        #            Host: www.w3.org"
-
         # init socket obj & connect to host
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((host,port))
@@ -76,17 +73,34 @@ class HTTPClient(object):
         if url.find("/") == -1:
             url += "/"
 
+        # build post and host header
         self.request =  "GET " + url[url.index("/"):] + " HTTP/1.0\n" + \
                         "Host: " + url[:url.index("/")] + "\n\n"
+
         sock = self.connect(url[:url.index("/")])
         data = self.recvall(sock)
 
+        # format response into object
         code = self.get_code(data)
         body = self.get_body(data)
 
         return HTTPRequest(code, body)
 
     def POST(self, url, args=None):
+        if url.find("/") == -1:
+            url += "/"
+
+        # build post and host header
+        self.request =  "POST " + url[url.index("/"):] + " HTTP/1.0\n" + \
+                        "Host: " + url[:url.index("/")] + "\n\n" + args
+        # add args into the header
+        # since we get the args in a dict
+        list_args = [ key + ": " + value for key in args.keys() for value in args.values()]
+
+        for arg in list_args:
+            self.request += arg + "\n"
+
+        # format response into object
         code = self.get_code(data)
         body = self.get_body(data)
         return HTTPRequest(code, body)
