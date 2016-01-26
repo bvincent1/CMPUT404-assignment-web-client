@@ -114,7 +114,7 @@ class HTTPClient(object):
         code = self.get_code(data)
         body = self.get_body(data)
 
-        return HTTPRequest(code, body)
+        return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
         url, port = self.parse_url(url)
@@ -147,7 +147,7 @@ class HTTPClient(object):
         # format response into object
         code = self.get_code(data)
         body = self.get_body(data)
-        return HTTPRequest(code, body)
+        return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
         if (command == "POST"):
