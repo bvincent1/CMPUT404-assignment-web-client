@@ -131,7 +131,7 @@ class HTTPClient(object):
                     form_args += args.keys()[i] + "=" + \
                                 args.values()[i] + "&"
             self.request += "Content-Length: {}\n\n".format(str(len(form_args)))
-            self.request += r"".join(form_args)
+            self.request += r"".join(form_args.replace("\\", "\\\\"))
 
             self.request = self.request.rstrip("&")
 

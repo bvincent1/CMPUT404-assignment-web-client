@@ -130,7 +130,7 @@ class TestHTTPClient(unittest.TestCase):
         self.assertTrue(req != None, "None Returned!")
         self.assertTrue(req.code == 404)
 
-    @unittest.skip("demonstrating skipping")
+    #@unittest.skip("demonstrating skipping")
     def test404POST(self):
         '''Test against 404 errors'''
         MyHTTPHandler.post = nothing_available
