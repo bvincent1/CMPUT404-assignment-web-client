@@ -27,6 +27,18 @@ import urllib
 def help():
     print "httpclient.py [GET/POST] [URL]\n"
 
+def testPOST():
+    args = {'a':'aaaaaaaaaaaaa',
+            'b':'bbbbbbbbbbbbbbbbbbbbbb',
+            'c':'c',
+            'd':'012345\r67890\n2321321\n\r'}
+    url = "http://www.httpbin.org/POST"
+
+    http = HTTPClient()
+    r = http.POST(url, args)
+    print r.code
+    print r.body
+
 class HTTPRequest(object):
     def __init__(self, code=200, body=""):
         self.code = code
@@ -37,6 +49,7 @@ class HTTPClient(object):
         # use sockets!
         # init socket obj & connect to host
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        print host
         sock.connect((host,port))
         sock.sendall(self.request)
 
@@ -54,8 +67,8 @@ class HTTPClient(object):
 
     # Returns response body as a string with newlines
     def get_body(self, data):
-        patern = r"(\r\n){2}|(\n){2}"
-        return str(re.split(patern, data)[-1])
+        patern = r"<html>"
+        return "<html>"+str(re.split(patern, data)[-1])
 
     # read everything from the socket
     def recvall(self, sock):
@@ -69,19 +82,32 @@ class HTTPClient(object):
                 done = True
         return str(buffer)
 
-    def GET(self, url, args=None):
+    def parse_url(self, url):
         # cut http:// cause Tim Berners-Lee
         if url.find("http://") != -1:
             url = url[url.index("//")+2:]
 
+        # add slash if needed eg: slashdot.org +"/"
         if url.find("/") == -1:
             url += "/"
 
+        port = re.search(r':([0-9]+)\/', url)
+        if port:
+            url = url.replace(":"+port.group(1), "")
+            port = int(port.group(1))
+        else:
+            port = 80
+
+        return url, port
+
+    def GET(self, url, args=None):
+        url, port = self.parse_url(url)
         # build post and host header
         self.request =  "GET " + url[url.index("/"):] + " HTTP/1.0\n" + \
                         "Host: " + url[:url.index("/")] + "\n\n"
 
-        sock = self.connect(url[:url.index("/")])
+        # form connection obj and connect
+        sock = self.connect(url[:url.index("/")], port)
         data = self.recvall(sock)
 
         # format response into object
@@ -91,22 +117,32 @@ class HTTPClient(object):
         return HTTPRequest(code, body)
 
     def POST(self, url, args=None):
-        # cut http:// cause Tim Berners-Lee
-        if url.find("http://") != -1:
-            url = url[url.index("//")+2:]
-
-        if url.find("/") == -1:
-            url += "/"
+        url, port = self.parse_url(url)
 
         # build post and host header
         self.request =  "POST " + url[url.index("/"):] + " HTTP/1.0\n" + \
-                        "Host: " + url[:url.index("/")] + "\n\n" + args
-        # add args into the header
+                        "Host: " + url[:url.index("/")] + "\n" + \
+                        "Content-Type: application/x-www-form-urlencoded\n"
+        # add args into the header & content length
         # since we get the args in a dict
-        list_args = [ key + ": " + value for key in args.keys() for value in args.values()]
+        if args:
+            form_args = ""
+            for i in range(len(args.keys())):
+                    form_args += args.keys()[i] + "=" + \
+                                args.values()[i].encode('string_escape').replace("\\","\\\\") + "&"
+            self.request += "Content-Length: {}\n\n".format(str(len(form_args)))
+            self.request += form_args
 
-        for arg in list_args:
-            self.request += arg + "\n"
+            self.request = self.request.rstrip("&")
+
+        # add in terminating newline
+        self.request +=  "\n"
+
+        print self.request
+
+        # form connection obj and connect
+        sock = self.connect(url[:url.index("/")], port)
+        data = self.recvall(sock)
 
         # format response into object
         code = self.get_code(data)
@@ -122,12 +158,13 @@ class HTTPClient(object):
 if __name__ == "__main__":
     client = HTTPClient()
     command = "GET"
+
     if (len(sys.argv) <= 1):
-        help()
-        sys.exit(1)
+        testPOST()
     elif (len(sys.argv) == 3):
         r = client.command(sys.argv[2], sys.argv[1])
         print r.code
+        print r.body
     else:
         r = client.command(sys.argv[1])
         print r.code
