@@ -32,7 +32,7 @@ def testPOST():
             'b':'bbbbbbbbbbbbbbbbbbbbbb',
             'c':'c',
             'd':'012345\r67890\n2321321\n\r'}
-    url = "http://www.httpbin.org/POST"
+    url = "http://www.httpbin.org/post"
 
     http = HTTPClient()
     r = http.POST(url, args)
@@ -67,8 +67,8 @@ class HTTPClient(object):
 
     # Returns response body as a string with newlines
     def get_body(self, data):
-        patern = r"<html>"
-        return "<html>"+str(re.split(patern, data)[-1])
+        patern = r"\n\n"
+        return re.split(patern, data)[-1])
 
     # read everything from the socket
     def recvall(self, sock):
