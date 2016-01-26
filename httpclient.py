@@ -39,7 +39,7 @@ def testPOST():
     print r.code
     print r.body
 
-class HTTPRequest(object):
+class HTTPResponse(object):
     def __init__(self, code=200, body=""):
         self.code = code
         self.body = body
@@ -67,8 +67,8 @@ class HTTPClient(object):
 
     # Returns response body as a string with newlines
     def get_body(self, data):
-        patern = r"\n\n"
-        return re.split(patern, data)[-1])
+        patern = r"\r?\n\r?\n"
+        return re.split(patern, data)[-1]
 
     # read everything from the socket
     def recvall(self, sock):
@@ -129,9 +129,9 @@ class HTTPClient(object):
             form_args = ""
             for i in range(len(args.keys())):
                     form_args += args.keys()[i] + "=" + \
-                                args.values()[i].encode('string_escape').replace("\\","\\\\") + "&"
+                                args.values()[i] + "&"
             self.request += "Content-Length: {}\n\n".format(str(len(form_args)))
-            self.request += form_args
+            self.request += r"".join(form_args)
 
             self.request = self.request.rstrip("&")
 
