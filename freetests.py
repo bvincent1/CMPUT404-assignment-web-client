@@ -120,7 +120,7 @@ class TestHTTPClient(unittest.TestCase):
             print "run_server: Thread died"
 
 
-    @unittest.skip("demonstrating skipping")
+    #@unittest.skip("demonstrating skipping")
     def test404GET(self):
         '''Test against 404 errors'''
         MyHTTPHandler.get = nothing_available
@@ -138,7 +138,7 @@ class TestHTTPClient(unittest.TestCase):
         req = http.POST("http://%s:%d/49872398432" % (BASEHOST,BASEPORT) )
         self.assertTrue(req != None, "None Returned!")
         self.assertTrue(req.code == 404)
-    @unittest.skip("demonstrating skipping")
+    #@unittest.skip("demonstrating skipping")
     def testGET(self):
         '''Test HTTP GET'''
         MyHTTPHandler.get = echo_path_get
@@ -151,7 +151,7 @@ class TestHTTPClient(unittest.TestCase):
         self.assertTrue(req.body.find(path)>=0, "Data: [%s] " % req.body)
 
     # consider disabling this test until everything else works
-    @unittest.skip("demonstrating skipping")
+    #@unittest.skip("demonstrating skipping")
     def testInternetGets(self):
         '''Test HTTP Get in the wild, these webservers are far less
            forgiving'''

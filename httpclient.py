@@ -24,6 +24,7 @@ import re
 # you may use urllib to encode data appropriately
 import urllib
 
+
 def help():
     print "httpclient.py [GET/POST] [URL]\n"
 
@@ -67,8 +68,8 @@ class HTTPClient(object):
 
     # Returns response body as a string with newlines
     def get_body(self, data):
-        patern = r"\r?\n\r?\n"
-        return re.split(patern, data)[-1]
+        patern = r"(\r?\n\r?\n)"
+        return "".join(re.split(patern, data)[1:])
 
     # read everything from the socket
     def recvall(self, sock):
@@ -135,9 +136,9 @@ class HTTPClient(object):
 
             self.request = self.request.rstrip("&")
 
-        # add in terminating newline
-        self.request +=  "\n"
+        self.request += "\n"
 
+        # add in terminating newline
         print self.request
 
         # form connection obj and connect
