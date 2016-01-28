@@ -179,7 +179,7 @@ class TestHTTPClient(unittest.TestCase):
                                 req.body.find("<body")>=0 ,
                                 "%s Data: [%s] " % (url,req.body))
 
-    @unittest.skip("demonstrating skipping")
+    #@unittest.skip("demonstrating skipping")
     def testPOST(self):
         '''Test HTTP POST with an echo server'''
         MyHTTPHandler.post = echo_post

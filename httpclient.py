@@ -134,9 +134,7 @@ class HTTPClient(object):
             self.request += "Content-Length: {}\n\n".format(str(len(form_args)))
             self.request += r"".join(form_args.replace("\\", "\\\\"))
 
-            self.request = self.request.rstrip("&")
-
-        self.request += "\n"
+        self.request += "\n\r"
 
         # add in terminating newline
         print self.request
